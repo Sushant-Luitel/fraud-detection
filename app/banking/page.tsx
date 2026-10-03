@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { ShieldAlert, CheckCircle2, AlertTriangle, ArrowRight } from 'lucide-react';
 
 export default function BankingPortal() {
-  const [sourceAccount, setSourceAccount] = useState('NPR-1002934');
+  const [sourceAccount, setSourceAccount] = useState('1002934001');
   const [destinationAccount, setDestinationAccount] = useState('9876543210');
   const [remarks, setRemarks] = useState('Family Support');
   

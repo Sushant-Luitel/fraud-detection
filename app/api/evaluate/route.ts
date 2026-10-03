@@ -29,18 +29,32 @@ export async function POST(request: Request) {
     let score = 0;
     const explanations: string[] = [];
 
-    // Rule 1: Dormancy/New Account Spike
-    if (data.accountAgeDays < 10 && data.recentDepositAmount >= 100000) {
-      score += 35;
-      explanations.push('+35: Large inflow on newly opened or dormant account');
+    // Rule 1: Account Age & Deposit Anomaly (Dynamic)
+    if (data.accountAgeDays < 30) {
+      // Risk factor based on age (newer = higher risk)
+      const ageFactor = (30 - data.accountAgeDays) / 30;
+      // Risk factor based on deposit amount
+      const depositFactor = Math.min(data.recentDepositAmount / 100000, 2);
+      
+      const rule1Score = Math.round(25 * ageFactor * depositFactor);
+      if (rule1Score > 0) {
+        score += rule1Score;
+        explanations.push(`+${rule1Score}: High deposit volume on a new/dormant account (${data.accountAgeDays} days old)`);
+      }
     }
 
-    // Rule 2: Pass-Through Velocity
+    // Rule 2: Pass-Through Velocity (Dynamic)
     if (data.recentDepositAmount > 0) {
       const velocity = data.transferOutAmount / data.recentDepositAmount;
-      if (velocity >= 0.85) {
-        score += 40;
-        explanations.push('+40: Rapid cash-out velocity (>85% of recent funds transferred immediately)');
+      if (velocity >= 0.4) {
+        // Scale from 0 to 50 based on velocity (40% to 100%)
+        const velocityFactor = Math.min((velocity - 0.4) / 0.6, 1);
+        const rule2Score = Math.round(50 * velocityFactor);
+        
+        if (rule2Score > 0) {
+          score += rule2Score;
+          explanations.push(`+${rule2Score}: High cash-out velocity (${Math.round(velocity * 100)}% of recent funds)`);
+        }
       }
     }
 
